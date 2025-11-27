@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動態行程表 - 那霸慢活五日遊 v4</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            margin: 0;
+            padding: 2rem 1rem;
+            color: #005f73;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('assets/網頁背景圖示.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            opacity: 0.5; /* 讓背景透明一點 */
+            z-index: -2;
+        }
+
+        /* --- 花團錦簇的動態背景 --- */
+        .flower-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .flower {
+            position: absolute;
+            top: -10%;
+            opacity: 0.5;
+            font-size: 1.5rem;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(105vh) rotate(360deg);
+            }
+        }
+        
+        .flower:nth-child(1) { left: 10%; animation-duration: 15s; animation-delay: -10s; }
+        .flower:nth-child(2) { left: 20%; animation-duration: 12s; animation-delay: -5s; font-size: 1.2rem; }
+        .flower:nth-child(3) { left: 30%; animation-duration: 18s; animation-delay: -2s; }
+        .flower:nth-child(4) { left: 40%; animation-duration: 14s; animation-delay: -12s; font-size: 1.4rem; }
+        .flower:nth-child(5) { left: 50%; animation-duration: 16s; animation-delay: -7s; }
+        .flower:nth-child(6) { left: 60%; animation-duration: 13s; animation-delay: -3s; font-size: 1.3rem; }
+        .flower:nth-child(7) { left: 70%; animation-duration: 20s; animation-delay: -8s; }
+        .flower:nth-child(8) { left: 80%; animation-duration: 11s; animation-delay: -1s; font-size: 1.2rem; }
+        .flower:nth-child(9) { left: 90%; animation-duration: 17s; animation-delay: -6s; }
+        .flower:nth-child(10) { left: 5%; animation-duration: 19s; animation-delay: -4s; font-size: 1.5rem; }
+
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .instructions {
+            background-color: rgba(224, 247, 250, 0.5);
+            border: 1px solid #0077b6;
+            color: #004d40;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px dashed #81D8D0;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        header h1, .day-card h2, .reservations h3 {
+            text-shadow: 1px 1px 3px rgba(255,255,255,0.5);
+        }
+
+        header h1 { font-size: 2.5rem; color: #005f73; margin: 0; }
+        header p { font-size: 1.1rem; color: #0077b6; margin: 0.5rem 0 0; }
+
+        .reservations {
+            background-color: #e0f7fa;
+            border: 2px dashed #0097a7;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .reservations h3 { margin-top: 0; color: #00796b; font-size: 1.3rem; margin-bottom: 0.8rem; }
+        .reservations ul { list-style: none; padding-left: 0; margin: 0; }
+        .reservations li { background: #fff; padding: 0.5rem 1rem; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+        .day-card {
+            background-color: rgba(240, 248, 255, 0.8);
+            border-radius: 15px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #0096c7;
+        }
+        
+        [contenteditable="true"] { outline: none; cursor: text; }
+        [contenteditable="true"]:hover, [contenteditable="true"]:focus {
+            background-color: #f8ffff;
+            box-shadow: 0 0 0 2px #ade8f4;
+            border-radius: 5px;
+        }
+
+        .day-card h2 { font-size: 1.8rem; color: #023e8a; margin-top: 0; margin-bottom: 1rem; }
+        .day-card ul { list-style: none; padding-left: 0; }
+        .day-card li { font-size: 1rem; line-height: 1.8; padding: 0.2rem 0.5rem; }
+        
+        .day-card .recommendation {
+            background-color: #e6f7ff;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            border-left: 4px solid #48cae4;
+        }
+
+        footer { text-align: center; margin-top: 2rem; font-size: 0.9rem; color: #005f73; }
+    </style>
+</head>
+<body>
+
+    <div class="flower-container">
+        <div class="flower">🌺</div><div class="flower">🌸</div><div class="flower">🌼</div>
+        <div class="flower">💮</div><div class="flower">🌷</div><div class="flower">🌺</div>
+        <div class="flower">🌸</div><div class="flower">🌼</div><div class="flower">💮</div>
+        <div class="flower">🌷</div>
+    </div>
+
+    <div class="container">
+        <div class="instructions">
+            💡 **操作提示：** 這是一份動態行程表！您可以直接用滑鼠點擊標題或行程文字，即可開始編輯。 (注意：修改後請使用瀏覽器的「另存新檔」來保存您的變更)
+        </div>
+
+        <header>
+            <h1 style="display: flex; align-items: center; justify-content: center;">
+                <a href="美食.html" target="_blank" title="點選查看美食推薦">
+                    <img src="assets/美食推薦圖示.jpg" alt="美食推薦圖示" width="40" height="40" style="margin-right: 15px; cursor: pointer; vertical-align: middle;">
+                </a>
+                <span contenteditable="true">那霸慢活五日遊</span>
+                <a href="assets/地圖.pdf" target="_blank" title="點選查看地圖">
+                    <img src="assets/扶桑花地圖圖示.jpg" alt="扶桑花地圖圖示" width="40" height="40" style="margin-left: 15px; cursor: pointer; vertical-align: middle;">
+                </a>
+            </h1>
+            <p contenteditable="true">2人・徒步+單軌 | 住宿：美榮橋站附近</p>
+        </header>
+        
+        <div class="reservations">
+            <h3 contenteditable="true">已預約項目 🗓️</h3>
+            <ul>
+                <li contenteditable="true">12/16 下午17點 - 琉球の牛 (那霸久茂地店)</li>
+            </ul>
+        </div>
+
+        <div class="day-card">
+            <h2 contenteditable="true">Day 1: 初見那霸，夜訪國際通 ✈️🌃</h2>
+            <ul>
+                <li contenteditable="true">15:00 抵達那霸機場(OKA)，搭乘單軌至「美榮橋站」前往飯店。</li>
+                <li contenteditable="true">17:00 散步至「國際通」，晚餐品嚐「琉球の牛」。</li>
+                <li contenteditable="true">20:30 夜逛「平和通商店街」或「市場本通商店街」，感受懷舊氛圍。</li>
+            </ul>
+        </div>
+
+        <div class="day-card">
+            <h2 contenteditable="true">Day 2: 琉球王國巡禮，尋訪陶器之鄉 🏰🏺</h2>
+            <ul>
+                <li contenteditable="true">上午：搭單軌至「首里站」，參觀「首里城公園」世界遺產。</li>
+                <li content-editable="true">中午：在首里城周邊享用道地的沖繩麵。</li>
+                <li contenteditable="true">下午：前往「壺屋やちむん通り(陶器街)」，參觀「壺屋燒物博物館」。</li>
+                <li contenteditable="true">傍晚：散步至「第一牧志公設市場」，感受市場活力。</li>
+            </ul>
+             <div class="recommendation" contenteditable="true">
+                <strong>晚餐推薦：</strong> 市場二樓食堂，或在「島唄と地料理 WARAKU」欣賞民謠表演。
+            </div>
+        </div>
+
+        <div class="day-card">
+            <h2 contenteditable="true">Day 3: 新都心一日，藝術薰陶與在地購物 🎨🛍️</h2>
+            <ul>
+                <li contenteditable="true">上午：搭單軌至「おもろまち站」，沉浸在「沖繩縣立博物館・美術館」。</li>
+                <li contenteditable="true">下午：在「Naha Main Place」或「T Galleria 免稅店」享受現代購物時光。</li>
+                <li contenteditable="true">傍晚：探索「榮町市場」的昭和懷舊感與巷弄居酒屋。</li>
+            arah_ichiba"
+                <strong>晚餐推薦：</strong> 榮町市場的「べんり屋 玉玲瓏」煎餃，或「うりずん」的琉球料理。
+            </div>
+        </div>
+
+        <div class="day-card">
+            <h2 contenteditable="true">Day 4: 市中心深度漫遊，歷史遺產與港灣之風 🏛️🌊</h2>
+            <ul>
+                <li contenteditable="true">上午：參觀「那霸市歷史博物館」，聚焦琉球王國文化。</li>
+                <li contenteditable="true">下午：步行至「波上宮」與那霸市區唯一的「波之上沙灘」。</li>
+            </ul>
+            <div class="recommendation" contenteditable="true">
+                <strong>餐飲推薦：</strong> 「燒肉本部牧場」午間套餐，或傳奇牛排「Jack's Steak House」。
+            </div>
+        </div>
+
+        <div class="day-card">
+            <h2 contenteditable="true">Day 5: 最後巡禮，滿載而歸 ☕🛫</h2>
+            <ul>
+                <li contenteditable="true">上午：方案A - 在國際通/唐吉訶德最後採購；方案B - 在「T&M COFFEE」享受悠閒時光。</li>
+                <li contenteditable="true">12:30：享用在沖繩的最後一頓午餐。</li>
+                <li contenteditable="true">14:00：返回飯店領取行李，搭乘單軌前往機場。</li>
+                <li contenteditable="true">16:30：班機起飛，滿載而歸！</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>由凱文為您精心設計的動態數位行程表 v4.0</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
